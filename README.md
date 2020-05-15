@@ -49,22 +49,19 @@
     
     Em cada thread ocorre a seguinte sequência de passos:
 
-        1. Extração da mensagem enviada pelo cliente no formato [n, pid, tid, duration, pl];
+        1. Extração da mensagem enviada pelo cliente no formato [n, pid, tid, duration, pl] e notificação RCVD. Posterior leitura da mensagem, a variável responsável pelo controlo dos lugares é alterada. Esta está protegida por processos de sincronização para que o incremento seja sequencial. Se os lugares forem limitados o cliente vai ocupar um lugar numa fila.
 
         2. Abertura do FIFO privado fornecido pelo cliente. Se tal não for possível o servidor recebe uma
-        notificação GAVUP.
+        notificação GAVUP. O número máximo de tentativas para abertura é 5.
 
-        3. Estabelecendo-se uma ligação ao FIFO privado, a variável responsável pelo controlo dos lugares será alterada. 
-        Esta variável está protegida por processos de sincronização, de modo a que o incremento seja sequencial;
-
-        4. A thread verifica se a duração que o cliente quer não ultrapassa o tempo de execução do Quarto de Banho.
+        3. A thread verifica se a duração que o cliente quer não ultrapassa o tempo de execução do Quarto de Banho.
         Se não ultrapassar, compõe uma mensagem com o devido lugar na fila e duração de utilização e dá-se uma 
         notificação ENTER. Caso contrário, a mensagem irá retornar a duração e o lugar do cliente como -1 e 
         será enviada uma notificação 2LATE;
 
-        5. Escrita da mensagem composta no FIFO privado e encerramento do mesmo;
+        4. Escrita da mensagem composta no FIFO privado e encerramento do mesmo;
 
-        6. A thread espera o tempo da duração do cliente e dá-se uma notificação TIMUP;
+        5. A thread espera o tempo da duração do cliente e dá-se uma notificação TIMUP. Se houver um número máximo de lugares o servidor desocupa o lugar.
 
 
 Deste modo, independentemente do seu tempo de duração, o pedido de um cliente é atendido, mesmo que este tenha 
