@@ -1,0 +1,12 @@
+FIFO <server/fifo.server> already exists!
+Fifo <server/fifo.server> opened successfully in READ ONLY mode.
+Error Error opening private FIFO </tmp/10.10228826>
+Error opening private FIFO </tmp/10.10228826>
+Error opening private FIFO </tmp/10.10228826>
+Error opening private FIFO </tmp/10.10228826>
+Error opening private FIFO </tmp/10.10228826>
+Error opening private FIFO </tmp/1.14052700695936Error terminating FIFO 2535, 1406, 140524338079488, 19, -1]
+ opening private FIFO </tmp/1.140527006959360>
+Error opening private FIFO </tmp/1.140527006959360>
+Error opening private FIFO </tmp/1.140527006959360>
+Error terminating FIFO 2543, 1406, 140524304508672, 20, -1]

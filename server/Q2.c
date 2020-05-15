@@ -43,7 +43,7 @@ void* thread_handler(void* arg){
     }
 
 
-    while ((fdPrivFifo = open(priv_fifo, O_WRONLY | O_NONBLOCK)) <= 0 
+    while ((fdPrivFifo = open(priv_fifo, O_WRONLY | O_NONBLOCK)) < 0 
             && num_tries < MAX_TRIES){
     
         fprintf(stderr, "Error opening private FIFO <%s>\n", priv_fifo);
@@ -84,8 +84,10 @@ void* thread_handler(void* arg){
         pthread_exit(NULL);
     }
 
-    if (close(fdPrivFifo) < 0)
-            fprintf(stderr, "Error closing private FIFO @%d\n", n);
+    if (close(fdPrivFifo) < 0) {
+        fprintf(stderr, "Error closing private FIFO @%d\n", n);
+        pthread_exit(NULL);
+    }
 
     
     if (!closed){
@@ -126,6 +128,7 @@ int main(int argc, char* argv[]){
 
     // ----------------------
     // Parse Arguments
+
     ServerArg args;
     strcpy(args.fifoname, "");
     args.nsecs = 0; args.nstalls = 0; args.nthreads = 0;
@@ -149,6 +152,9 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);
     }
 
+    fprintf(stderr, "FIFO: %s\n", public_fifo);
+    
+
     // ----------------------
     // Handle Public FIFO
 
@@ -161,7 +167,7 @@ int main(int argc, char* argv[]){
         active_stalls_reached_max = true;
 
     init_clock();
-    printf("Execution time: %d\nFifo: %s\n", args.nsecs, args.fifoname);
+    fprintf(stderr, "Execution time: %d\nFifo: %s\n", args.nsecs, args.fifoname);
 
     strcat(public_fifo, args.fifoname);
     create_fifo(public_fifo);
@@ -227,7 +233,7 @@ int main(int argc, char* argv[]){
     if (close(fdPubFifo) < 0)
          fprintf(stderr, "Error closing public FIFO\n"); 
 
-    printf("Bathroom is closed - %f\n", get_elapsed_time());
+    fprintf(stderr, "Bathroom is closed - %f\n", get_elapsed_time());
 
     pthread_exit(EXIT_SUCCESS);
 }
