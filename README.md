@@ -49,7 +49,7 @@
     
     Em cada thread ocorre a seguinte sequência de passos:
 
-        1. Extração da mensagem enviada pelo cliente no formato [n, pid, tid, duration, pl] e notificação RCVD. Posterior leitura da mensagem, a variável responsável pelo controlo dos lugares é alterada. Esta está protegida por processos de sincronização para que o incremento seja sequencial. Se os lugares forem limitados o cliente vai ocupar um lugar numa fila.
+        1. Extração da mensagem enviada pelo cliente no formato [n, pid, tid, duration, pl] e notificação RCVD. Posterior leitura da mensagem, a variável responsável pelo controlo dos lugares é alterada. Esta está protegida por processos de sincronização para que o incremento seja sequencial. Se os lugares forem limitados o cliente vai ocupar um lugar numa fila (tal como aconteceria num quarto de banho real).
 
         2. Abertura do FIFO privado fornecido pelo cliente. Se tal não for possível o servidor recebe uma
         notificação GAVUP. O número máximo de tentativas para abertura é 5.

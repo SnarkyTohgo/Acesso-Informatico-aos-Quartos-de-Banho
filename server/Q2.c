@@ -5,6 +5,7 @@
 Queue queue;
 
 int stall = 1, bathroom_time;
+
 bool closed = false;
 bool active_threads_reached_max = false;
 bool active_stalls_reached_max = false;
@@ -63,10 +64,10 @@ void* thread_handler(void* arg){
 
 
     if (get_elapsed_time() < bathroom_time){
-        sprintf(client_msg, "[%d, %d, %ld, %d, %d]", n, getpid(), pthread_self(), duration, this_stall);
+        sprintf(client_msg, "[ %d, %d, %ld, %d, %d]", n, getpid(), pthread_self(), duration, this_stall);
         write_to_log(n, getpid(), pthread_self(), duration, this_stall, ENTER);
     } else {
-        sprintf(client_msg, "[%d, %d, %ld, %d, %d]", n, getpid(), pthread_self(), -1, -1);
+        sprintf(client_msg, "[ %d, %d, %ld, %d, %d]", n, getpid(), pthread_self(), -1, -1);
         write_to_log(n, getpid(), pthread_self(), duration, this_stall, TOO_LATE);
     } 
 
@@ -124,7 +125,7 @@ void release_stalls_sem(int stall){
 
 int main(int argc, char* argv[]){
     int fdPubFifo, ret_code;
-    char msg[BUFFER_SIZE], public_fifo[BUFFER_SIZE] = "server/";
+    char msg[BUFFER_SIZE], public_fifo[BUFFER_SIZE] = "";
 
     // ----------------------
     // Parse Arguments
@@ -151,8 +152,6 @@ int main(int argc, char* argv[]){
 
         exit(EXIT_FAILURE);
     }
-
-    fprintf(stderr, "FIFO: %s\n", public_fifo);
     
 
     // ----------------------
@@ -167,13 +166,13 @@ int main(int argc, char* argv[]){
         active_stalls_reached_max = true;
 
     init_clock();
-    fprintf(stderr, "Execution time: %d\nFifo: %s\n", args.nsecs, args.fifoname);
 
     strcat(public_fifo, args.fifoname);
     create_fifo(public_fifo);
 
+    fprintf(stderr, "Execution time: %d\nFifo: %s\n", args.nsecs, public_fifo);
 
-    if ((fdPubFifo = open(public_fifo, O_RDONLY, O_NONBLOCK)) != -1){
+    if ((fdPubFifo = open(public_fifo, O_RDONLY | O_NONBLOCK)) != -1){
         fprintf(stderr, "Fifo <%s> opened successfully in READ ONLY mode.\n", public_fifo); 
     } else {
         fprintf(stderr, "Error opening FIFO <%s>.\n", public_fifo);
@@ -206,6 +205,8 @@ int main(int argc, char* argv[]){
                 
                 pthread_t thread;
                 pthread_create(&thread, NULL, thread_handler, dup);
+                
+                fprintf(stderr, "\n---------------------\n\n");
             }
         }    
     }
@@ -214,7 +215,7 @@ int main(int argc, char* argv[]){
     // Close Bathroom and Handle Last Requests
 
     closed = true;
-    
+
     destroy_fifo(public_fifo);
 
     while (read_msg(fdPubFifo, msg) > 0){

@@ -18,7 +18,7 @@ int read_msg(int fd, char* msg){
 
     msg[idx] = '\0';
 
-    return ARRAY_SIZE(msg);
+    return strlen(msg);
 }
 
 
@@ -119,8 +119,10 @@ void create_fifo(char* fifoname){
 
 
 void destroy_fifo(char* fifoname){
-    if (unlink(fifoname) < 0)
+    if (unlink(fifoname) < 0){
+        perror("FIFO Unlink");
         fprintf(stderr, "Error terminating FIFO %s\n", fifoname);
+    }
     else 
         fprintf(stderr, "FIFO <%s> has been destroyed\n", fifoname);
 }

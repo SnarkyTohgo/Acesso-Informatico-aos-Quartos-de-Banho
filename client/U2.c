@@ -39,7 +39,7 @@ void* thread_handler(void* arg){
 
     duration = create_msg(msg, n);
 
-    if (write(fdPubFifo, &msg, ARRAY_SIZE(msg)) < 0){
+    if (write(fdPubFifo, &msg, strlen(msg)) < 0){
         fprintf(stderr, "Error writing to public FIFO\n");
         write_to_log(n, getpid(), pthread_self(), -1, -1, FAILED);
         
@@ -53,6 +53,7 @@ void* thread_handler(void* arg){
     }
         
     write_to_log(n, getpid(), pthread_self(), duration, -1, I_WANT);
+ 
     if (close(fdPubFifo) < 0){
         fprintf(stderr, "Error closing public FIFO\n");
         pthread_exit(NULL);
@@ -85,7 +86,7 @@ void* thread_handler(void* arg){
         pthread_exit(NULL);
     }
 
-    sscanf(server_msg, "[%d, %d, %ld, %d, %d]", &i, &pid, &tid, &duration, &stall);
+    sscanf(server_msg, "[ %d, %d, %ld, %d, %d]", &i, &pid, &tid, &duration, &stall);
 
     if (stall < 0 && duration < 0) {
         closed = true;
@@ -102,7 +103,7 @@ void* thread_handler(void* arg){
 
 int create_msg(char* msg, int n){
     int duration = rng(1, 20);
-    sprintf(msg, "[%d, %d, %ld, %d, -1]", n, (int)getpid(), (long)pthread_self(), duration);
+    sprintf(msg, "[ %d, %d, %ld, %d, -1]\n", n, getpid(), pthread_self(), duration);
 
     return duration;
 }
@@ -111,10 +112,9 @@ int create_msg(char* msg, int n){
 int main(int argc, char* argv[]){
     
     ClientArg args;
-
     strcpy(args.fifoname, "");
 
-    int t = 0, ret_code;
+    int ret_code;
 
     srand(time(NULL));
 
@@ -132,19 +132,21 @@ int main(int argc, char* argv[]){
     }
 
     init_clock();
-    printf("Execution time: %d\nFifo: <%s>\n", args.nsecs, args.fifoname);
 
-    char public_fifo[BUFFER_SIZE] = "server/";
+    char public_fifo[BUFFER_SIZE] = "";
     strcat(public_fifo, args.fifoname);
+
+    fprintf(stderr, "Execution time: %d\nFifo: <%s>\n", args.nsecs, public_fifo);
 
     while (get_elapsed_time() < args.nsecs && !closed){
         pthread_t thread;
         pthread_create(&thread, NULL, thread_handler, &public_fifo);
-        t = (t + 1) % MAX_THREADS;
 
         usleep(10000);
+
+        fprintf(stderr, "\n---------------------\n\n");
     }
 
-    printf("\nDone - %f seconds\n", get_elapsed_time());
+    fprintf(stderr, "\nDone - %f seconds\n", get_elapsed_time());
     pthread_exit(EXIT_SUCCESS);
 }
